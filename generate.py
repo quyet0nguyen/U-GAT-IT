@@ -3,25 +3,12 @@ import math
 
 import torch
 from torchvision import utils
-
+from utils import *
 from dataset import ImageFolder
 from torchvision import transforms
 from torch.utils.data import DataLoader
 
 from networks import ResnetGenerator 
-
-
-@torch.no_grad()
-def sample(generator, step, mean_style, n_sample, device):
-    image = generator(
-        torch.randn(n_sample, 512).to(device),
-        step=step,
-        alpha=1,
-        mean_style=mean_style,
-        style_weight=0.7,
-    )
-    
-    return image
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
@@ -58,7 +45,26 @@ if __name__ == '__main__':
     testB_loader = DataLoader(self.testB, batch_size=1, shuffle=False)
 
     for i in range(args.num_img):
-      img = sample(generator, step, mean_style, 1, device)
-      name = args.dir + '/' + 'sample' + str(i) + '.png'
-      utils.save_image(img, name, normalize=True, range=(-1, 1))
+      try:
+          real_A, _ = testA_iter.next()
+          real_B, _ = testB_iter.next()
+      except:
+          testA_iter = iter(testA_loader)
+          real_A, _ = testA_iter.next()
+          testB_iter = iter(testB_loader)
+          real_B, _ = testB_iter.next()
+
+      real_A, real_B = real_A.to(self.device), real_B.to(self.device)
+
+      fake_A2B, _, __ = self.genA2B(real_A)
+      fake_B2A, _, __ = self.genB2A(real_B)
+
+      A2B = RGB2BGR(tensor2numpy(denorm(fake_A2B[0])))
+      B2A = RGB2BGR(tensor2numpy(denorm(fake_B2A[0])))
+
+      nameA2B = args.out_dir + '/' + 'sampleA2B' + str(i) + '.png'
+      cv2.imwrite(os.path.join(nameA2B, A2B * 255.0)
+      
+      nameB2A = args.out_dir + '/' + 'sampleB2A' + str(i) + '.png'
+      cv2.imwrite(os.path.join(nameB2A, B2A * 255.0)
     
