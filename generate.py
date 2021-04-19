@@ -33,7 +33,7 @@ if __name__ == '__main__':
 
 
     test_transform = transforms.Compose([
-            transforms.Resize((self.img_size, self.img_size)),
+            transforms.Resize((256, 256)),
             transforms.ToTensor(),
             transforms.Normalize(mean=(0.5, 0.5, 0.5), std=(0.5, 0.5, 0.5))
         ])
@@ -41,8 +41,8 @@ if __name__ == '__main__':
     testA = ImageFolder(os.path.join(args.in_dir, 'testA'), test_transform)
     testB = ImageFolder(os.path.join(args.in_dir, 'testB'), test_transform)
 
-    testA_loader = DataLoader(self.testA, batch_size=1, shuffle=False)
-    testB_loader = DataLoader(self.testB, batch_size=1, shuffle=False)
+    testA_loader = DataLoader(testA, batch_size=1, shuffle=False)
+    testB_loader = DataLoader(testB, batch_size=1, shuffle=False)
 
     for i in range(args.num_img):
       try:
@@ -54,17 +54,17 @@ if __name__ == '__main__':
           testB_iter = iter(testB_loader)
           real_B, _ = testB_iter.next()
 
-      real_A, real_B = real_A.to(self.device), real_B.to(self.device)
+      real_A, real_B = real_A.to(device), real_B.to(device)
 
-      fake_A2B, _, __ = self.genA2B(real_A)
-      fake_B2A, _, __ = self.genB2A(real_B)
+      fake_A2B, _, __ = genA2B(real_A)
+      fake_B2A, _, __ = genB2A(real_B)
 
       A2B = RGB2BGR(tensor2numpy(denorm(fake_A2B[0])))
       B2A = RGB2BGR(tensor2numpy(denorm(fake_B2A[0])))
 
-      nameA2B = args.out_dir + '/' + 'sampleA2B' + str(i) + '.png'
-      cv2.imwrite(os.path.join(nameA2B, A2B * 255.0)
+      nameA2B = args.out_dir + '/A2B/' + 'sample' + str(i) + '.png'
+      cv2.imwrite(nameA2B, A2B * 255.0)
       
-      nameB2A = args.out_dir + '/' + 'sampleB2A' + str(i) + '.png'
-      cv2.imwrite(os.path.join(nameB2A, B2A * 255.0)
+      nameB2A = args.out_dir + '/B2A/' + 'sample' + str(i) + '.png'
+      cv2.imwrite(nameB2A, B2A * 255.0)
     
